@@ -359,11 +359,28 @@
   }
   function drill(grid, title, games, filterText, onClear) {
     var c = h('section', { class: 'card s12', 'data-info': INFO.drill }, [h('h3', {}, [title + ' ', onClear ? h('button', { class: 'clear', type: 'button', text: 'Clear selection', onclick: onClear }) : null]), h('p', { class: 'sub', text: filterText + ' · showing ' + Math.min(25, games.length) + ' most recent of ' + fmtN(games.length) + ' games' })]);
-    c.appendChild(games.length ? gamesTable(games.slice().sort(function (a, b) { return b.utc - a.utc; })) : h('div', { class: 'empty', text: 'No games in this selection.' }));
+    c.appendChild(games.length ? gamesTable(games.slice().sort(function (a, b) { return b.utc - a.utc; })) : emptyScene('No games in this selection.', true));
     grid.appendChild(c);
   }
   function setSel(k, v) { if (v === null || v === undefined) delete state.sel[k]; else state.sel[k] = v; draw(); }
-  function emptyMsg(grid) { grid.appendChild(h('div', { class: 'card s12 empty', text: 'No games match the current Year / Format / Side filters. Use Reset to clear them.' })); }
+  var EMPTY_SCENES = {
+    king: ['Checkmate. By filters.', 'A fallen king waving a tiny surrender flag.'],
+    queen: ['Her Majesty\u2019s schedule is suspiciously clear.', 'A queen checking a completely empty calendar.'],
+    rook: ['No moves. Plenty of time.', 'A sleepy rook resting beside an oversized chess clock.'],
+    bishop: ['Not even a diagonal way out.', 'A bishop studying a map with its diagonal routes crossed out.'],
+    knight: ['Tried an L-turn. Still nothing.', 'A confused knight surrounded by question marks.'],
+    pawn: ['Big dreams. Zero games.', 'A pawn searching the distance through binoculars.']
+  };
+  function emptyScene(message, compact) {
+    var piece = EMPTY_SCENES[state.chapter] ? state.chapter : 'king';
+    var scene = EMPTY_SCENES[piece];
+    return h('div', { class: 'empty-state' + (compact ? ' empty-state-compact' : ''), role: 'status' }, [
+      h('div', { class: 'empty-art empty-art-' + piece, role: 'img', 'aria-label': scene[1] }),
+      h('h3', { class: 'empty-headline', text: scene[0] }),
+      h('p', { class: 'empty-message', text: message })
+    ]);
+  }
+  function emptyMsg(grid) { grid.appendChild(h('section', { class: 'card s12' }, [emptyScene('No games match the current Year / Format / Side filters. Use Reset to clear them.')])); }
 
   // ---------- chapters ----------
   function kingChapter(grid, sc) {
